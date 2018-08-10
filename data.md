@@ -334,28 +334,13 @@ Bitwise logical operators are lifted from the integer versions.
     rule byte(N, W) => bitRangeInt(W , ( 31 -Int N) *Int 8 , 8) requires N >=Int 0 andBool N <Int  32
 ```
 
--   `#nBits` shifts in $N$ ones from the right.
--   `#nBytes` shifts in $N$ bytes of ones from the right.
--   `_<<Byte_` shifts an integer 8 bits to the left.
-
-```k
-    syntax Int ::= #nBits  ( Int )  [function]
-                 | #nBytes ( Int )  [function]
-                 | Int "<<Byte" Int [function]
- // ------------------------------------------
-    rule #nBits(N)  => (1 <<Int N) -Int 1 requires N >=Int 0
-    rule #nBytes(N) => #nBits(N *Int 8)   requires N >=Int 0
-    rule N <<Byte M => N <<Int (8 *Int M)
-```
-
 -   `signextend(N, W)` sign-extends from byte $N$ of $W$ (0 being MSB).
 
 ```k
     syntax Int ::= signextend( Int , Int ) [function]
  // -------------------------------------------------
-    rule signextend(N, W) => W requires N >=Int 32 orBool N <Int 0
-    rule signextend(N, W) => chop( (#nBytes(31 -Int N) <<Byte (N +Int 1)) |Int W ) requires N <Int 32 andBool N >=Int 0 andBool         word2Bool(bit(256 -Int (8 *Int (N +Int 1)), W))
-    rule signextend(N, W) => chop( #nBytes(N +Int 1)                      &Int W ) requires N <Int 32 andBool N >=Int 0 andBool notBool word2Bool(bit(256 -Int (8 *Int (N +Int 1)), W))
+    rule signextend(N, W) => W                                                       requires notBool (N >=Int 0 andBool N <Int 32)
+    rule signextend(N, W) => chop(signExtendBitRangeInt(W, 0, 255 -Int (N <<Int 3))) requires          N >=Int 0 andBool N <Int 32
 ```
 
 -   `keccak` serves as a wrapper around the `Keccak256` in `KRYPTO`.
